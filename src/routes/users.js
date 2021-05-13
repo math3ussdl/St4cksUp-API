@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const User = require('../database/models/user');
+const { sendMail } = require('../utils/sendMail');
 
 /*
  * GET /users route retrieve all the users.
@@ -22,6 +23,15 @@ async function getUsers(_req, res) {
 async function postUser(req, res) {
 	try {
 		let user = await User.create(req.body);
+
+		if (user.email) {
+			await sendMail({
+				from: process.env.ADMIN_MAIL,
+				to: user.email,
+				subject: 'Bem-vinda(o) ao St4cksUP',
+				html: `Hey ${user.name}, você acabou de criar a sua conta, clique neste <a>link</a> para fazer a ativação.`,
+			});
+		}
 
 		return res
 			.status(StatusCodes.CREATED)
