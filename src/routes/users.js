@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const User = require('../database/models/user');
+const { sendMail } = require('../utils/sendMail');
 
 /*
  * GET /users route retrieve all the users.
@@ -22,6 +23,15 @@ async function getUsers(_req, res) {
 async function postUser(req, res) {
 	try {
 		let user = await User.create(req.body);
+
+		if (user.email) {
+			await sendMail({
+				from: process.env.ADMIN_MAIL,
+				to: user.email,
+				subject: 'Bem-vinda(o) ao St4cksUP',
+				html: `Hey ${user.name}, você acabou de criar a sua conta, clique neste <a>link</a> para fazer a ativação.`,
+			});
+		}
 
 		return res
 			.status(StatusCodes.CREATED)
@@ -47,6 +57,32 @@ async function getUser(req, res) {
 }
 
 /*
+ * PUT /users/active/:id to activate a user given its id
+ */
+async function activeUser(req, res) {
+	try {
+		const { id } = req.params;
+		let user = await User.findById(id);
+
+		if (!user) {
+			return res
+				.status(StatusCodes.NOT_FOUND)
+				.json({ message: 'User not found!' });
+		}
+
+		user = await User.updateOne(
+			{ _id: user.id },
+			{ $set: { is_active: true } },
+			{ new: true }
+		);
+
+		return res.json({ message: 'User activated!' });
+	} catch (error) {
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
+	}
+}
+
+/*
  * PUT /users/:id to update a user given its id
  */
 async function updateUser(req, res) {
@@ -61,7 +97,7 @@ async function updateUser(req, res) {
 		}
 
 		user = await User.updateOne(
-			{ id: user.id },
+			{ _id: user.id },
 			{ $set: updatedUser },
 			{ new: true }
 		);
@@ -97,6 +133,7 @@ module.exports = {
 	getUsers,
 	postUser,
 	getUser,
+	activeUser,
 	updateUser,
 	deleteUser,
 };

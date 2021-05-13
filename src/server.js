@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const logger = require('./config/logger');
 const users = require('./routes/users');
+const auth = require('./routes/auth');
+const { verifyJWT } = require('./middlewares/verifyJWT');
 
 const app = express();
 const port = process.env.PORT || 3333;
@@ -23,13 +25,17 @@ app.use(bodyParser.text());
 app.use(bodyParser.json({ type: 'application/json' }));
 
 // route definitions
-app.route('/users').get(users.getUsers).post(users.postUser);
+app.route('/users').get(verifyJWT, users.getUsers).post(users.postUser);
 
 app
 	.route('/users/:id')
-	.get(users.getUser)
-	.put(users.updateUser)
-	.delete(users.deleteUser);
+	.get(verifyJWT, users.getUser)
+	.put(verifyJWT, users.updateUser)
+	.delete(verifyJWT, users.deleteUser);
+
+app.route('/users/active/:id').put(users.activeUser);
+
+app.route('/users/auth').post(auth.authenticate);
 
 app.listen(port);
 logger.info(`Server initialized with port: ${port}`);
