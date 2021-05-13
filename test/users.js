@@ -143,6 +143,110 @@ describe('Users', () => {
 	 * Test the GET /users/:id route
 	 */
 	describe('GET /users/:id', () => {
+		it('should not GET a user given a not valid id', done => {
+			const _id = '609d7a245121582eccba6d';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.put(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.BAD_REQUEST);
+										res.body.should.be.a('object');
+										res.body.should.have.property('value').eql(_id);
+										res.body.should.have.property('path').eql('_id');
+										res.body.should.have.property('name').eql('CastError');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
+		it('should not GET a user given a non existent user id', done => {
+			const _id = '609d7a245121582eccba6d85';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.put(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.NOT_FOUND);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('User not found!');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
 		it('should GET a user by the given id', done => {
 			let user = new User({
 				name: 'John Doe',
@@ -193,9 +297,271 @@ describe('Users', () => {
 	});
 
 	/*
+	 * Test the PUT /users/active/:id route
+	 */
+	describe('PUT /users/active/:id', () => {
+		it('should not ACTIVATE a user given a not valid id', done => {
+			const _id = '609d7a245121582eccba6d';
+
+			chai
+				.request(server)
+				.put(`/users/active/${_id}`)
+				.end((errReq, res) => {
+					if (errReq) logger.error.bind(err, 'Request Error: ');
+
+					res.should.have.status(StatusCodes.BAD_REQUEST);
+					res.body.should.be.a('object');
+					res.body.should.have.property('value').eql(_id);
+					res.body.should.have.property('path').eql('_id');
+					res.body.should.have.property('name').eql('CastError');
+
+					done();
+				});
+		});
+
+		it('should not ACTIVATE a user given a non existent user id', done => {
+			const _id = '609d7a245121582eccba6d85';
+
+			chai
+				.request(server)
+				.put(`/users/active/${_id}`)
+				.end((errReq, res) => {
+					if (errReq) logger.error.bind(err, 'Request Error: ');
+
+					res.should.have.status(StatusCodes.NOT_FOUND);
+					res.body.should.be.a('object');
+					res.body.should.have.property('message').eql('User not found!');
+
+					done();
+				});
+		});
+
+		it('should ACTIVATE a user given the id', done => {
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						res.should.have.status(StatusCodes.OK);
+						res.body.should.be.a('object');
+						res.body.should.have.property('message').eql('User activated!');
+
+						done();
+					});
+			});
+		});
+	});
+
+	/*
+	 * Test the POST /users/invite route
+	 */
+	describe('POST /users/invite', () => {
+		it('should INVITE a users given your emails', done => {
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.post('/users/invite')
+									.set('x-access-token', authRes.body.token)
+									.send({
+										emails: [
+											'jamesfernandes@gmail.com',
+											'rayssa.lima@gmail.com',
+										],
+									})
+									.end((err, res) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.OK);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('All emails notified!');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+	});
+
+	/*
 	 * Test the PUT /users/:id route
 	 */
 	describe('PUT /users/:id', () => {
+		it('should not UPDATE a user given a not valid id', done => {
+			const _id = '609d7a245121582eccba6d';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.put(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.send({
+										name: 'Bill Doe',
+										username: 'doe_-_bill',
+										email: 'bill.doe123@gmail.com',
+										password: '123456789',
+										stack: [
+											{
+												image: 'url',
+												name: 'Node.JS',
+											},
+										],
+									})
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.BAD_REQUEST);
+										res.body.should.be.a('object');
+										res.body.should.have.property('value').eql(_id);
+										res.body.should.have.property('path').eql('_id');
+										res.body.should.have.property('name').eql('CastError');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
+		it('should not UPDATE a user given a non existent user id', done => {
+			const _id = '609d7a245121582eccba6d85';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.put(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.send({
+										name: 'Bill Doe',
+										username: 'doe_-_bill',
+										email: 'bill.doe123@gmail.com',
+										password: '123456789',
+										stack: [
+											{
+												image: 'url',
+												name: 'Node.JS',
+											},
+										],
+									})
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.NOT_FOUND);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('User not found!');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
 		it('should UPDATE a user given the id', done => {
 			let user = new User({
 				name: 'John Doe',
@@ -263,6 +629,110 @@ describe('Users', () => {
 	 * Test the DELETE /users/:id route
 	 */
 	describe('DELETE /users/:id', () => {
+		it('should not DELETE a user given a not valid id', done => {
+			const _id = '609d7a245121582eccba6d';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.delete(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.BAD_REQUEST);
+										res.body.should.be.a('object');
+										res.body.should.have.property('value').eql(_id);
+										res.body.should.have.property('path').eql('_id');
+										res.body.should.have.property('name').eql('CastError');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
+		it('should not DELETE a user given a non existent user id', done => {
+			const _id = '609d7a245121582eccba6d85';
+
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.delete(`/users/${_id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.NOT_FOUND);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('User not found!');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
 		it('should DELETE a user given the id', done => {
 			let user = new User({
 				name: 'John Doe',

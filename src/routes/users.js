@@ -2,6 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const User = require('../database/models/user');
 const { sendMail } = require('../utils/sendMail');
+const { decodeJWT } = require('../utils/jwt');
 
 /*
  * GET /users route retrieve all the users.
@@ -83,6 +84,36 @@ async function activeUser(req, res) {
 }
 
 /*
+ * POST /users/invite
+ */
+async function inviteUsers(req, res) {
+	try {
+		const { emails } = req.body;
+		const token = req.headers['x-access-token'];
+
+		const decoded = await decodeJWT(token);
+
+		const userAuth = await User.findById(decoded.id);
+
+		emails.forEach(async email => {
+			await sendMail({
+				from: process.env.ADMIN_MAIL,
+				to: email,
+				subject: `${userAuth.name} convidou você para participar do St4cksUP`,
+				html: `
+					Hey, tudo bem? Isso mesmo que você ouviu! Venha se juntar a ${userAuth.name}
+					e a outros usuários que fazem a diferença para a comunidade de tecnologia!
+				`,
+			});
+		});
+
+		return res.json({ message: 'All emails notified!' });
+	} catch (error) {
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
+	}
+}
+
+/*
  * PUT /users/:id to update a user given its id
  */
 async function updateUser(req, res) {
@@ -134,6 +165,7 @@ module.exports = {
 	postUser,
 	getUser,
 	activeUser,
+	inviteUsers,
 	updateUser,
 	deleteUser,
 };

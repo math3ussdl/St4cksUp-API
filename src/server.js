@@ -34,7 +34,7 @@ app
 	.delete(verifyJWT, users.deleteUser);
 
 app.route('/users/active/:id').put(users.activeUser);
-
+app.route('/users/invite').post(verifyJWT, users.inviteUsers);
 app.route('/users/auth').post(auth.authenticate);
 
 app.listen(port);
