@@ -21,26 +21,6 @@ describe('Users', () => {
 	});
 
 	/*
-	 * Test the GET /users route
-	 */
-	describe('GET /users', () => {
-		it('it should GET all the users', done => {
-			chai
-				.request(server)
-				.get('/users')
-				.end((err, res) => {
-					if (err) logger.error.bind(err, 'Request Error: ');
-
-					res.should.have.status(200);
-					res.body.should.be.a('array');
-					res.body.length.should.be.eql(0);
-
-					done();
-				});
-		});
-	});
-
-	/*
 	 * Test the POST /users route
 	 */
 	describe('POST /users', () => {
@@ -108,6 +88,58 @@ describe('Users', () => {
 	});
 
 	/*
+	 * Test the GET /users route
+	 */
+	describe('GET /users', () => {
+		it('it should GET all the users', done => {
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				stack: [
+					{
+						image: 'url',
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.get('/users')
+									.set('x-access-token', authRes.body.token)
+									.end((err, res) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.OK);
+										res.body.should.be.a('array');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+	});
+
+	/*
 	 * Test the GET /users/:id route
 	 */
 	describe('GET /users/:id', () => {
@@ -130,15 +162,31 @@ describe('Users', () => {
 
 				chai
 					.request(server)
-					.get(`/users/${user.id}`)
-					.end((errReq, res) => {
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
 						if (errReq) logger.error.bind(err, 'Request Error: ');
 
-						res.should.have.status(200);
-						res.body.should.be.a('object');
-						res.body.should.have.property('_id').eql(user.id);
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
 
-						done();
+								chai
+									.request(server)
+									.get(`/users/${user.id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((err, res) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.OK);
+										res.body.should.be.a('object');
+										res.body.should.have.property('_id').eql(user.id);
+
+										done();
+									});
+							});
 					});
 			});
 		});
@@ -167,27 +215,45 @@ describe('Users', () => {
 
 				chai
 					.request(server)
-					.put(`/users/${user.id}`)
-					.send({
-						name: 'Bill Doe',
-						username: 'doe_-_bill',
-						email: 'bill.doe123@gmail.com',
-						password: '123456789',
-						stack: [
-							{
-								image: 'url',
-								name: 'Node.JS',
-							},
-						],
-					})
-					.end((errReq, res) => {
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
 						if (errReq) logger.error.bind(err, 'Request Error: ');
 
-						res.should.have.status(200);
-						res.body.should.be.a('object');
-						res.body.should.have.property('message').eql('User updated!');
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
 
-						done();
+								chai
+									.request(server)
+									.put(`/users/${user.id}`)
+									.set('x-access-token', authRes.body.token)
+									.send({
+										name: 'Bill Doe',
+										username: 'doe_-_bill',
+										email: 'bill.doe123@gmail.com',
+										password: '123456789',
+										stack: [
+											{
+												image: 'url',
+												name: 'Node.JS',
+											},
+										],
+									})
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.OK);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('User updated!');
+
+										done();
+									});
+							});
 					});
 			});
 		});
@@ -216,19 +282,35 @@ describe('Users', () => {
 
 				chai
 					.request(server)
-					.delete(`/users/${user.id}`)
-					.end((errReq, res) => {
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
 						if (errReq) logger.error.bind(err, 'Request Error: ');
 
-						res.should.have.status(200);
-						res.body.should.be.a('object');
-						res.body.should.have
-							.property('message')
-							.eql('User successfully deleted!');
-						res.body.result.should.have.property('ok').eql(1);
-						res.body.result.should.have.property('n').eql(1);
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
 
-						done();
+								chai
+									.request(server)
+									.delete(`/users/${user.id}`)
+									.set('x-access-token', authRes.body.token)
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.OK);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('User successfully deleted!');
+										res.body.result.should.have.property('ok').eql(1);
+										res.body.result.should.have.property('n').eql(1);
+
+										done();
+									});
+							});
 					});
 			});
 		});
