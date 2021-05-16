@@ -12,6 +12,9 @@ const { verifyJWT } = require('./middlewares/verifyJWT');
 const app = express();
 const port = process.env.PORT || 3333;
 
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
+
 require('./database');
 
 //don't show the log when it is test
@@ -37,7 +40,27 @@ app.route('/users/active/:id').put(users.activeUser);
 app.route('/users/invite').post(verifyJWT, users.inviteUsers);
 app.route('/users/auth').post(auth.authenticate);
 
-app.listen(port);
+// Socket connection event
+io.on('connection', socket => {
+	logger.info(`Socket connected: ${socket.id}`);
+
+	// Network request event
+	socket.on('network_request', data => {
+		logger.debug('Data: ', data);
+	});
+
+	// Network request accepted event
+	socket.on('network_accepted', data => {
+		logger.debug('Data: ', data);
+	});
+
+	// Network request rejected event
+	socket.on('network_rejected', data => {
+		logger.debug('Data: ', data);
+	});
+});
+
+server.listen(port);
 logger.info(`Server initialized with port: ${port}`);
 
 module.exports = app;
