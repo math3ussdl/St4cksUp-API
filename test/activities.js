@@ -13,16 +13,15 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
-describe.only('Activities', () => {
+describe('Activities', () => {
 	beforeEach(done => {
 		Activity.deleteMany({}, err => {
 			if (err) logger.error.bind(err, 'Database Error: ');
-			done();
-		});
 
-		User.deleteMany({}, err => {
-			if (err) logger.error.bind(err, 'Database Error: ');
-			done();
+			User.deleteMany({}, err => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+				done();
+			});
 		});
 	});
 
