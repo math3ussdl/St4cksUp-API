@@ -1,13 +1,17 @@
 require('dotenv').config();
 
 const express = require('express');
-const mongoose = require('mongoose');
 const morgan = require('morgan');
-const bodyParser = require('body-parser');
 const logger = require('./config/logger');
 const users = require('./routes/users');
 const auth = require('./routes/auth');
 const { verifyJWT } = require('./middlewares/verifyJWT');
+const {
+	createRequest,
+	acceptRequest,
+	rejectRequest,
+} = require('./routes/requests');
+const { listActivities } = require('./routes/activities');
 
 const app = express();
 const port = process.env.PORT || 3333;
@@ -22,10 +26,10 @@ if (process.env.NODE_ENV !== 'test') {
 	app.use(morgan('combined')); //'combined' outputs the Apache style LOGs
 }
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.text());
-app.use(bodyParser.json({ type: 'application/json' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.text());
+app.use(express.json({ type: 'application/json' }));
 
 // route definitions
 app.route('/users').get(verifyJWT, users.getUsers).post(users.postUser);
@@ -39,6 +43,12 @@ app
 app.route('/users/active/:id').put(users.activeUser);
 app.route('/users/invite').post(verifyJWT, users.inviteUsers);
 app.route('/users/auth').post(auth.authenticate);
+
+app.route('/users/request').post(verifyJWT, createRequest);
+app.route('/users/request/:id/accepts').delete(verifyJWT, acceptRequest);
+app.route('/users/request/:id/rejects').delete(verifyJWT, rejectRequest);
+
+app.route('/activities').get(verifyJWT, listActivities);
 
 // Socket connection event
 io.on('connection', socket => {

@@ -91,9 +91,9 @@ async function inviteUsers(req, res) {
 		const { emails } = req.body;
 		const token = req.headers['x-access-token'];
 
-		const decoded = await decodeJWT(token);
+		const { id } = await decodeJWT(token);
 
-		const userAuth = await User.findById(decoded.id);
+		const userAuth = await User.findById(id);
 
 		emails.forEach(async email => {
 			await sendMail({
