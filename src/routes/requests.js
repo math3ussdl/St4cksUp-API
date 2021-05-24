@@ -12,7 +12,7 @@ async function createRequest(req, res) {
 		const type = req.headers['x-connection-type'];
 		const token = req.headers['x-access-token'];
 		const targetId = req.headers['x-target-id'];
-		const { id } = decodeJWT(token);
+		const { id } = await decodeJWT(token);
 
 		const author = await User.findOne({ _id: id });
 		const target = await User.findOne({ _id: targetId });
@@ -29,6 +29,7 @@ async function createRequest(req, res) {
 		});
 
 		await Activity.create({
+			answered: false,
 			type: 'REQUEST',
 			author: author._id,
 			target: target._id,
@@ -67,6 +68,7 @@ async function acceptRequest(req, res) {
 				);
 
 				await Request.deleteOne({ _id: id });
+
 				break;
 
 			case 'STARTUP@REQ':
@@ -78,6 +80,8 @@ async function acceptRequest(req, res) {
 			case 'TASK@REQ':
 				break;
 		}
+
+		return res.json({ message: 'Request successfully accepted!' });
 	} catch ({ message }) {
 		return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message });
 	}

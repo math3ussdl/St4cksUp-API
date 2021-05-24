@@ -46,7 +46,7 @@ async function postUser(req, res) {
  * GET /users/:id route to retrieve a user given its id.
  */
 async function getUser(req, res) {
-	const user = await User.findById(req.params.id);
+	const user = await User.findById(req.params.id).populate('connection');
 
 	if (!user) {
 		return res
