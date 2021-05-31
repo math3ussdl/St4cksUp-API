@@ -14,7 +14,7 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
-describe.only('Networks', () => {
+describe('Networks', () => {
 	beforeEach(done => {
 		Activity.deleteMany({}, err => {
 			if (err) logger.error.bind(err, 'Database Error: ');
@@ -34,7 +34,7 @@ describe.only('Networks', () => {
 	 * Test the POST /users/request route
 	 */
 	describe('POST /users/request', () => {
-		it('should POST a request and requests a user to join in our network connection', () => {
+		it('should POST a request and requests a user to join in our network connection', done => {
 			let user1 = new User({
 				name: 'John Doe',
 				username: 'doe_-_john',
