@@ -46,7 +46,7 @@ async function postUser(req, res) {
  * GET /users/:id route to retrieve a user given its id.
  */
 async function getUser(req, res) {
-	const user = await User.findById(req.params.id);
+	const user = await User.findById(req.params.id).populate('connection');
 
 	if (!user) {
 		return res
@@ -91,9 +91,9 @@ async function inviteUsers(req, res) {
 		const { emails } = req.body;
 		const token = req.headers['x-access-token'];
 
-		const decoded = await decodeJWT(token);
+		const { id } = await decodeJWT(token);
 
-		const userAuth = await User.findById(decoded.id);
+		const userAuth = await User.findById(id);
 
 		emails.forEach(async email => {
 			await sendMail({
