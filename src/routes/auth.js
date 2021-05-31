@@ -15,25 +15,29 @@ async function authenticate(req, res) {
 		if (!user) {
 			return res
 				.status(StatusCodes.NOT_FOUND)
-				.json({ message: 'User not found!' });
+				.json({ user: null, token: null, message: 'User not found!' });
 		}
 
 		if (!user.is_active) {
 			return res
 				.status(StatusCodes.UNAUTHORIZED)
-				.json({ message: 'Active your account before sign in!' });
+				.json({
+					user: null,
+					token: null,
+					message: 'Active your account before sign in!',
+				});
 		}
 
 		const isMatch = await compare(password, user.password);
 		if (!isMatch) {
 			return res
 				.status(StatusCodes.UNAUTHORIZED)
-				.json({ message: 'Passwords not match!' });
+				.json({ user: null, token: null, message: 'Passwords not match!' });
 		}
 
 		const token = genJWT(user._id);
 
-		return res.json({ user, token });
+		return res.json({ user, token, message: null });
 	} catch (error) {
 		return res
 			.status(StatusCodes.INTERNAL_SERVER_ERROR)
