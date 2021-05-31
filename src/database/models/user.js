@@ -49,7 +49,7 @@ const UserSchema = new Schema(
 		connection: [
 			{
 				type: Schema.Types.ObjectId,
-				ref: 'User',
+				ref: 'user',
 			},
 		],
 	},
