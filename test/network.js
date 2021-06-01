@@ -43,7 +43,7 @@ describe('Networks', () => {
 				location: 'San Francisco, CA',
 				stack: [
 					{
-						image: 'url',
+						image: 15897,
 						name: 'Node.JS',
 					},
 				],
@@ -60,11 +60,11 @@ describe('Networks', () => {
 					location: 'San Francisco, CA',
 					stack: [
 						{
-							image: 'url',
+							image: 15897,
 							name: 'Node.JS',
 						},
 						{
-							image: 'url',
+							image: 15897,
 							name: 'React.JS',
 						},
 					],
