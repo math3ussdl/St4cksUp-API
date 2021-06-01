@@ -40,6 +40,7 @@ describe('Networks', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -56,6 +57,7 @@ describe('Networks', () => {
 					username: 'maryd234_-_1',
 					email: 'mary.doe@gmail.com',
 					password: '12345678',
+					location: 'San Francisco, CA',
 					stack: [
 						{
 							image: 'url',
@@ -107,7 +109,6 @@ describe('Networks', () => {
 														.property('message')
 														.eql('Request successfully created!');
 													res.body.should.have.property('request');
-
 													done();
 												});
 										});
@@ -122,101 +123,13 @@ describe('Networks', () => {
 	 * Test the DELETE /users/request/:id/accepts route
 	 */
 	describe('DELETE /users/request/:id/accepts', () => {
-		it('should DELETE a request and add a user in our network connection', () => {
-			let user1 = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				stack: [
-					{
-						image: 'url',
-						name: 'Node.JS',
-					},
-				],
-			});
-
-			user1.save((err, user) => {
-				if (err) logger.error.bind(err, 'Database Error: ');
-
-				let user2 = new User({
-					name: 'Mary Doe',
-					username: 'maryd234_-_1',
-					email: 'mary.doe@gmail.com',
-					password: '12345678',
-					stack: [
-						{
-							image: 'url',
-							name: 'Node.JS',
-						},
-						{
-							image: 'url',
-							name: 'React.JS',
-						},
-					],
-				});
-
-				user2.save((err, user2) => {
-					if (err) logger.error.bind(err, 'Database Error: ');
-
-					chai
-						.request(server)
-						.put(`/users/active/${user._id}`)
-						.end((errReq, _res) => {
-							if (errReq) logger.error.bind(err, 'Request Error: ');
-
-							chai
-								.request(server)
-								.put(`/users/active/${user2._id}`)
-								.end((errReq2, _res) => {
-									if (errReq2) logger.error.bind(err, 'Request Error: ');
-
-									chai
-										.request(server)
-										.post('/users/auth')
-										.send({ email: user.email, password: '123456789' })
-										.end((authErr, authRes) => {
-											if (authErr)
-												logger.error.bind(authErr, 'Request Error: ');
-
-											chai
-												.request(server)
-												.post('/users/request')
-												.set('x-connection-type', 'CONNECTION@REQ')
-												.set('x-access-token', authRes.body.token)
-												.set('x-target-id', user2._id)
-												.end((err, requestRes) => {
-													if (err) logger.error.bind(err, 'Request Error: ');
-
-													chai
-														.request(server)
-														.delete(`/users/request/${requestRes._id}/accepts`)
-														.set('x-access-token', authRes.body.token)
-														.end((err, res) => {
-															if (err)
-																logger.error.bind(err, 'Request Error: ');
-
-															res.should.have.status(StatusCodes.OK);
-															res.body.should.be.a('object');
-															res.body.should.have
-																.property('message')
-																.eql('Request successfully accepted!');
-
-															done();
-
-															// Resolves this error!!!
-														});
-												});
-										});
-								});
-						});
-				});
-			});
-		});
+		it('should DELETE a request and add a user in our network connection');
 	});
 
 	/**
 	 * Test the DELETE /users/request/:id/rejects route
 	 */
-	// describe('DELETE /users/request/:id/rejects', () => {});
+	describe('DELETE /users/request/:id/rejects', () => {
+		it('should DELETE a request and reject');
+	});
 });

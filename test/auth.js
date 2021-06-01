@@ -51,6 +51,7 @@ describe('Auth', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -86,6 +87,7 @@ describe('Auth', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -128,6 +130,7 @@ describe('Auth', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',

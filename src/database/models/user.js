@@ -39,6 +39,11 @@ const UserSchema = new Schema(
 			default: "Hi! I'm using ST4cksUP!",
 		},
 
+		location: {
+			type: String,
+			required: true,
+		},
+
 		stack: [
 			{
 				image: String,

@@ -29,6 +29,7 @@ describe('Users', () => {
 				name: 'John Doe',
 				username: 'doe_-_john',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -59,6 +60,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -97,6 +99,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -151,6 +154,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -203,6 +207,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -253,6 +258,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -342,6 +348,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -379,6 +386,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -442,6 +450,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -475,6 +484,7 @@ describe('Users', () => {
 										username: 'doe_-_bill',
 										email: 'bill.doe123@gmail.com',
 										password: '123456789',
+										location: 'San Francisco, CA',
 										stack: [
 											{
 												image: 'url',
@@ -506,6 +516,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -539,6 +550,7 @@ describe('Users', () => {
 										username: 'doe_-_bill',
 										email: 'bill.doe123@gmail.com',
 										password: '123456789',
+										location: 'San Francisco, CA',
 										stack: [
 											{
 												image: 'url',
@@ -568,6 +580,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -601,6 +614,7 @@ describe('Users', () => {
 										username: 'doe_-_bill',
 										email: 'bill.doe123@gmail.com',
 										password: '123456789',
+										location: 'San Francisco, CA',
 										stack: [
 											{
 												image: 'url',
@@ -637,6 +651,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -689,6 +704,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',
@@ -739,6 +755,7 @@ describe('Users', () => {
 				username: 'doe_-_john',
 				email: 'john.doe123@gmail.com',
 				password: '123456789',
+				location: 'San Francisco, CA',
 				stack: [
 					{
 						image: 'url',

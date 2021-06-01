@@ -29,7 +29,7 @@ async function postUser(req, res) {
 			await sendMail({
 				from: process.env.ADMIN_MAIL,
 				to: user.email,
-				subject: 'Bem-vinda(o) ao St4cksUP',
+				subject: 'Bem-vindo(a) ao St4cksUP',
 				html: `Hey ${user.name}, você acabou de criar a sua conta, clique neste <a>link</a> para fazer a ativação.`,
 			});
 		}
