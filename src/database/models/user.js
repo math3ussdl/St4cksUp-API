@@ -53,7 +53,7 @@ const UserSchema = new Schema(
 
 		stack: [
 			{
-				image: String,
+				image: Number,
 				name: String,
 			},
 		],

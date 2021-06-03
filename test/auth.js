@@ -54,7 +54,7 @@ describe('Auth', () => {
 				location: 'San Francisco, CA',
 				stack: [
 					{
-						image: 'url',
+						image: 15897,
 						name: 'Node.JS',
 					},
 				],
@@ -90,7 +90,7 @@ describe('Auth', () => {
 				location: 'San Francisco, CA',
 				stack: [
 					{
-						image: 'url',
+						image: 15897,
 						name: 'Node.JS',
 					},
 				],
@@ -133,7 +133,7 @@ describe('Auth', () => {
 				location: 'San Francisco, CA',
 				stack: [
 					{
-						image: 'url',
+						image: 15897,
 						name: 'Node.JS',
 					},
 				],
