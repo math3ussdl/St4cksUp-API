@@ -11,9 +11,7 @@ async function getPosts(_req, res) {
 		const posts = await Post.find();
 		return res.json(posts);
 	} catch (error) {
-		return res
-			.status(StatusCodes.INTERNAL_SERVER_ERROR)
-			.json({ message: error });
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
 }
 
@@ -34,9 +32,7 @@ async function createPost(req, res) {
 			.status(StatusCodes.CREATED)
 			.json({ message: 'Post successfully created!', post });
 	} catch (error) {
-		return res
-			.status(StatusCodes.INTERNAL_SERVER_ERROR)
-			.json({ message: error });
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
 }
 
@@ -55,9 +51,7 @@ async function getPost(req, res) {
 
 		return res.json(post);
 	} catch (error) {
-		return res
-			.status(StatusCodes.INTERNAL_SERVER_ERROR)
-			.json({ message: error });
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
 }
 
@@ -83,9 +77,7 @@ async function updatePost(req, res) {
 
 		return res.json({ message: 'Post updated!' });
 	} catch (error) {
-		return res
-			.status(StatusCodes.INTERNAL_SERVER_ERROR)
-			.json({ message: error });
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
 }
 
@@ -106,9 +98,7 @@ async function deletePost(req, res) {
 
 		return res.json({ message: 'Post successfully deleted!', result });
 	} catch (error) {
-		return res
-			.status(StatusCodes.INTERNAL_SERVER_ERROR)
-			.json({ message: error });
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
 }
 
