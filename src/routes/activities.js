@@ -7,7 +7,7 @@ async function listActivities(req, res) {
 	try {
 		const { q } = req.query;
 		const token = req.headers['x-access-token'];
-		const { id } = decodeJWT(token);
+		const { id } = await decodeJWT(token);
 
 		const user = await User.findOne({ _id: id });
 		let activities;

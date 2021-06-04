@@ -9,7 +9,7 @@ const { decodeJWT } = require('../utils/jwt');
  */
 async function getPosts(_req, res) {
 	try {
-		const posts = await Post.find();
+		const posts = await Post.find().populate('author');
 		return res.json(posts);
 	} catch (error) {
 		return res.status(StatusCodes.BAD_REQUEST).json(error);
@@ -22,7 +22,7 @@ async function getPosts(_req, res) {
 async function createPost(req, res) {
 	try {
 		const token = req.headers['x-access-token'];
-		const { id } = decodeJWT(token);
+		const { id } = await decodeJWT(token);
 
 		let post = await Post.create({
 			author: id,
@@ -31,9 +31,10 @@ async function createPost(req, res) {
 			...req.body,
 		});
 
-		return res
-			.status(StatusCodes.CREATED)
-			.json({ message: 'Post successfully created!', post });
+		return res.status(StatusCodes.CREATED).json({
+			message: 'Post successfully created!',
+			post,
+		});
 	} catch (error) {
 		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
