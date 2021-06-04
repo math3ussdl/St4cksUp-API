@@ -1,8 +1,10 @@
 process.env.NODE_ENV = 'test';
 
 const mongoose = require('mongoose');
+const Post = require('../src/database/models/post');
 const User = require('../src/database/models/user');
 
+const fs = require('fs');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../src/server');
@@ -12,88 +14,23 @@ const should = chai.should();
 
 chai.use(chaiHttp);
 
-describe('Users', () => {
+describe('Posts', () => {
 	beforeEach(done => {
-		User.deleteMany({}, err => {
+		Post.deleteMany({}, err => {
 			if (err) logger.error.bind(err, 'Database Error: ');
-			done();
+
+			User.deleteMany({}, err => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+				done();
+			});
 		});
 	});
 
-	/*
-	 * Test the POST /users route
+	/**
+	 * Test the GET /posts route
 	 */
-	describe('POST /users', () => {
-		it('should not POST a user without email field', done => {
-			let user = {
-				name: 'John Doe',
-				username: 'doe_-_john',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			};
-
-			chai
-				.request(server)
-				.post('/users')
-				.send(user)
-				.end((err, res) => {
-					if (err) logger.error.bind(err, 'Request Error: ');
-
-					res.should.have.status(StatusCodes.BAD_REQUEST);
-					res.body.should.be.a('object');
-					res.body.should.have.property('errors');
-					res.body.errors.should.have.property('email');
-
-					done();
-				});
-		});
-
-		it('should POST a user', done => {
-			let user = {
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			};
-
-			chai
-				.request(server)
-				.post('/users')
-				.send(user)
-				.end((err, res) => {
-					if (err) logger.error.bind(err, 'Request Error: ');
-
-					res.should.have.status(StatusCodes.CREATED);
-					res.body.should.be.a('object');
-					res.body.should.have
-						.property('message')
-						.eql('User successfully created!');
-					res.body.should.have.property('user');
-					res.body.user.should.be.a('object');
-
-					done();
-				});
-		});
-	});
-
-	/*
-	 * Test the GET /users route
-	 */
-	describe('GET /users', () => {
-		it('it should GET all the users', done => {
+	describe('GET /posts', () => {
+		it('should GET all the posts', done => {
 			let user = new User({
 				name: 'John Doe',
 				username: 'doe_-_john',
@@ -126,14 +63,13 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.get('/users')
+									.get('/posts')
 									.set('x-access-token', authRes.body.token)
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
 										res.should.have.status(StatusCodes.OK);
 										res.body.should.be.a('array');
-
 										done();
 									});
 							});
@@ -143,10 +79,69 @@ describe('Users', () => {
 	});
 
 	/*
-	 * Test the GET /users/:id route
+	 * Test the POST /posts route
 	 */
-	describe('GET /users/:id', () => {
-		it('should not GET a user given a not valid id', done => {
+	describe('POST /posts', () => {
+		it('should POST a post passing all data correctly', done => {
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				location: 'San Francisco, CA',
+				stack: [
+					{
+						image: 15897,
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
+									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, res) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.CREATED);
+										res.body.should.be.a('object');
+										done();
+									});
+							});
+					});
+			});
+		});
+	});
+
+	/*
+	 * Test the GET /posts/:id route
+	 */
+	describe('GET /posts/:id', () => {
+		it('should not GET a post given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User({
@@ -181,118 +176,16 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.put(`/users/${_id}`)
-									.set('x-access-token', authRes.body.token)
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
-
-										res.should.have.status(StatusCodes.BAD_REQUEST);
-										res.body.should.be.a('object');
-										res.body.should.have.property('value').eql(_id);
-										res.body.should.have.property('path').eql('_id');
-										res.body.should.have.property('name').eql('CastError');
-
-										done();
-									});
-							});
-					});
-			});
-		});
-
-		it('should not GET a user given a non existent user id', done => {
-			const _id = '609d7a245121582eccba6d85';
-
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
-
-			user.save((err, user) => {
-				if (err) logger.error.bind(err, 'Database Error: ');
-
-				chai
-					.request(server)
-					.put(`/users/active/${user._id}`)
-					.end((errReq, _res) => {
-						if (errReq) logger.error.bind(err, 'Request Error: ');
-
-						chai
-							.request(server)
-							.post('/users/auth')
-							.send({ email: user.email, password: '123456789' })
-							.end((authErr, authRes) => {
-								if (authErr) logger.error.bind(authErr, 'Request Error: ');
-
-								chai
-									.request(server)
-									.put(`/users/${_id}`)
-									.set('x-access-token', authRes.body.token)
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
-
-										res.should.have.status(StatusCodes.NOT_FOUND);
-										res.body.should.be.a('object');
-										res.body.should.have
-											.property('message')
-											.eql('User not found!');
-
-										done();
-									});
-							});
-					});
-			});
-		});
-
-		it('should GET a user by the given id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
-
-			user.save((err, user) => {
-				if (err) logger.error.bind(err, 'Database Error: ');
-
-				chai
-					.request(server)
-					.put(`/users/active/${user._id}`)
-					.end((errReq, _res) => {
-						if (errReq) logger.error.bind(err, 'Request Error: ');
-
-						chai
-							.request(server)
-							.post('/users/auth')
-							.send({ email: user.email, password: '123456789' })
-							.end((authErr, authRes) => {
-								if (authErr) logger.error.bind(authErr, 'Request Error: ');
-
-								chai
-									.request(server)
-									.get(`/users/${user.id}`)
+									.get(`/posts/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.OK);
+										res.should.have.status(StatusCodes.BAD_REQUEST);
 										res.body.should.be.a('object');
-										res.body.should.have.property('_id').eql(user.id);
+										res.body.should.have.property('value').eql(_id);
+										res.body.should.have.property('path').eql('_id');
+										res.body.should.have.property('name').eql('CastError');
 
 										done();
 									});
@@ -300,87 +193,10 @@ describe('Users', () => {
 					});
 			});
 		});
-	});
 
-	/*
-	 * Test the PUT /users/active/:id route
-	 */
-	describe('PUT /users/active/:id', () => {
-		it('should not ACTIVATE a user given a not valid id', done => {
-			const _id = '609d7a245121582eccba6d';
-
-			chai
-				.request(server)
-				.put(`/users/active/${_id}`)
-				.end((errReq, res) => {
-					if (errReq) logger.error.bind(err, 'Request Error: ');
-
-					res.should.have.status(StatusCodes.BAD_REQUEST);
-					res.body.should.be.a('object');
-					res.body.should.have.property('value').eql(_id);
-					res.body.should.have.property('path').eql('_id');
-					res.body.should.have.property('name').eql('CastError');
-
-					done();
-				});
-		});
-
-		it('should not ACTIVATE a user given a non existent user id', done => {
+		it('should not GET a post given a non existent post id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
-			chai
-				.request(server)
-				.put(`/users/active/${_id}`)
-				.end((errReq, res) => {
-					if (errReq) logger.error.bind(err, 'Request Error: ');
-
-					res.should.have.status(StatusCodes.NOT_FOUND);
-					res.body.should.be.a('object');
-					res.body.should.have.property('message').eql('User not found!');
-
-					done();
-				});
-		});
-
-		it('should ACTIVATE a user given the id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
-
-			user.save((err, user) => {
-				if (err) logger.error.bind(err, 'Database Error: ');
-
-				chai
-					.request(server)
-					.put(`/users/active/${user._id}`)
-					.end((errReq, res) => {
-						if (errReq) logger.error.bind(err, 'Request Error: ');
-
-						res.should.have.status(StatusCodes.OK);
-						res.body.should.be.a('object');
-						res.body.should.have.property('message').eql('User activated!');
-
-						done();
-					});
-			});
-		});
-	});
-
-	/*
-	 * Test the POST /users/invite route
-	 */
-	describe('POST /users/invite', () => {
-		it('should INVITE a users given your emails', done => {
 			let user = new User({
 				name: 'John Doe',
 				username: 'doe_-_john',
@@ -413,24 +229,84 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.post('/users/invite')
+									.put(`/posts/${_id}`)
 									.set('x-access-token', authRes.body.token)
-									.send({
-										emails: [
-											'jamesfernandes@gmail.com',
-											'rayssa.lima@gmail.com',
-										],
-									})
-									.end((err, res) => {
+									.end((errReq, res) => {
+										if (errReq) logger.error.bind(err, 'Request Error: ');
+
+										res.should.have.status(StatusCodes.NOT_FOUND);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql('Post not found!');
+
+										done();
+									});
+							});
+					});
+			});
+		});
+
+		it('should GET a post by the given id', done => {
+			let user = new User({
+				name: 'John Doe',
+				username: 'doe_-_john',
+				email: 'john.doe123@gmail.com',
+				password: '123456789',
+				location: 'San Francisco, CA',
+				stack: [
+					{
+						image: 15897,
+						name: 'Node.JS',
+					},
+				],
+			});
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
+									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.OK);
-										res.body.should.be.a('object');
-										res.body.should.have
-											.property('message')
-											.eql('All emails notified!');
+										chai
+											.request(server)
+											.get(`/posts/${post.body.post._id}`)
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
 
-										done();
+												res.should.have.status(StatusCodes.OK);
+												res.body.should.be.a('object');
+												res.body.should.have
+													.property('_id')
+													.eql(post.body.post._id);
+
+												done();
+											});
 									});
 							});
 					});
@@ -439,10 +315,10 @@ describe('Users', () => {
 	});
 
 	/*
-	 * Test the PUT /users/:id route
+	 * Test the PUT /posts/:id route
 	 */
-	describe('PUT /users/:id', () => {
-		it('should not UPDATE a user given a not valid id', done => {
+	describe('PUT /posts/:id', () => {
+		it('should not PUT a post given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User({
@@ -477,38 +353,45 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.put(`/users/${_id}`)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
-									.send({
-										name: 'Bill Doe',
-										username: 'doe_-_bill',
-										email: 'bill.doe123@gmail.com',
-										password: '123456789',
-										location: 'San Francisco, CA',
-										stack: [
-											{
-												image: 15897,
-												name: 'Node.JS',
-											},
-										],
-									})
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, _post) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.BAD_REQUEST);
-										res.body.should.be.a('object');
-										res.body.should.have.property('value').eql(_id);
-										res.body.should.have.property('path').eql('_id');
-										res.body.should.have.property('name').eql('CastError');
+										chai
+											.request(server)
+											.put(`/posts/${_id}`)
+											.send({
+												image: 'url2',
+												image_hash: 'hash2',
+												description: 'sample post 2',
+											})
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
 
-										done();
+												res.should.have.status(StatusCodes.BAD_REQUEST);
+												res.body.should.be.a('object');
+												res.body.should.have.property('value').eql(_id);
+												res.body.should.have.property('path').eql('_id');
+												res.body.should.have.property('name').eql('CastError');
+
+												done();
+											});
 									});
 							});
 					});
 			});
 		});
 
-		it('should not UPDATE a user given a non existent user id', done => {
+		it('should not PUT a post given a non existent post id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
 			let user = new User({
@@ -543,20 +426,10 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.put(`/users/${_id}`)
+									.put(`/posts/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.send({
-										name: 'Bill Doe',
-										username: 'doe_-_bill',
-										email: 'bill.doe123@gmail.com',
-										password: '123456789',
-										location: 'San Francisco, CA',
-										stack: [
-											{
-												image: 15897,
-												name: 'Node.JS',
-											},
-										],
+										description: 'sample_desc',
 									})
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
@@ -565,7 +438,7 @@ describe('Users', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('User not found!');
+											.eql('Post not found!');
 
 										done();
 									});
@@ -574,7 +447,7 @@ describe('Users', () => {
 			});
 		});
 
-		it('should UPDATE a user given the id', done => {
+		it('should PUT a post by the given id', done => {
 			let user = new User({
 				name: 'John Doe',
 				username: 'doe_-_john',
@@ -607,31 +480,36 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.put(`/users/${user.id}`)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
-									.send({
-										name: 'Bill Doe',
-										username: 'doe_-_bill',
-										email: 'bill.doe123@gmail.com',
-										password: '123456789',
-										location: 'San Francisco, CA',
-										stack: [
-											{
-												image: 15897,
-												name: 'Node.JS',
-											},
-										],
-									})
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, post) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.OK);
-										res.body.should.be.a('object');
-										res.body.should.have
-											.property('message')
-											.eql('User updated!');
+										chai
+											.request(server)
+											.put(`/posts/${post.body.post._id}`)
+											.send({
+												description: 'sample post 2',
+											})
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
 
-										done();
+												res.should.have.status(StatusCodes.OK);
+												res.body.should.be.a('object');
+												res.body.should.have
+													.property('message')
+													.eql('Post updated!');
+
+												done();
+											});
 									});
 							});
 					});
@@ -640,10 +518,10 @@ describe('Users', () => {
 	});
 
 	/*
-	 * Test the DELETE /users/:id route
+	 * Test the DELETE /posts/:id route
 	 */
-	describe('DELETE /users/:id', () => {
-		it('should not DELETE a user given a not valid id', done => {
+	describe('DELETE /posts/:id', () => {
+		it('should not DELETE a post given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User({
@@ -678,25 +556,40 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.delete(`/users/${_id}`)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, _post) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.BAD_REQUEST);
-										res.body.should.be.a('object');
-										res.body.should.have.property('value').eql(_id);
-										res.body.should.have.property('path').eql('_id');
-										res.body.should.have.property('name').eql('CastError');
+										chai
+											.request(server)
+											.delete(`/posts/${_id}`)
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
 
-										done();
+												res.should.have.status(StatusCodes.BAD_REQUEST);
+												res.body.should.be.a('object');
+												res.body.should.have.property('value').eql(_id);
+												res.body.should.have.property('path').eql('_id');
+												res.body.should.have.property('name').eql('CastError');
+
+												done();
+											});
 									});
 							});
 					});
 			});
 		});
 
-		it('should not DELETE a user given a non existent user id', done => {
+		it('should not DELETE a post given a non existent post id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
 			let user = new User({
@@ -731,7 +624,7 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.delete(`/users/${_id}`)
+									.delete(`/posts/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
@@ -740,7 +633,7 @@ describe('Users', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('User not found!');
+											.eql('Post not found!');
 
 										done();
 									});
@@ -749,7 +642,7 @@ describe('Users', () => {
 			});
 		});
 
-		it('should DELETE a user given the id', done => {
+		it('should DELETE a post by the given id', done => {
 			let user = new User({
 				name: 'John Doe',
 				username: 'doe_-_john',
@@ -782,20 +675,33 @@ describe('Users', () => {
 
 								chai
 									.request(server)
-									.delete(`/users/${user.id}`)
+									.post('/posts')
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
-									.end((errReq, res) => {
-										if (errReq) logger.error.bind(err, 'Request Error: ');
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
+									.end((err, post) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.OK);
-										res.body.should.be.a('object');
-										res.body.should.have
-											.property('message')
-											.eql('User successfully deleted!');
-										res.body.result.should.have.property('ok').eql(1);
-										res.body.result.should.have.property('n').eql(1);
+										chai
+											.request(server)
+											.delete(`/posts/${post.body.post._id}`)
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
 
-										done();
+												res.should.have.status(StatusCodes.OK);
+												res.body.should.be.a('object');
+												res.body.should.have
+													.property('message')
+													.eql('Post successfully deleted!');
+
+												done();
+											});
 									});
 							});
 					});

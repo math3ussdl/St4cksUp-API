@@ -9,6 +9,11 @@ const PostSchema = new Schema(
 			required: true,
 		},
 
+		image_hash: {
+			type: String,
+			required: true,
+		},
+
 		description: {
 			type: String,
 			required: true,

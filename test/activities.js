@@ -38,7 +38,7 @@ describe('Activities', () => {
 				location: 'San Francisco, CA',
 				stack: [
 					{
-						image: 'url',
+						image: 15897,
 						name: 'Node.JS',
 					},
 				],

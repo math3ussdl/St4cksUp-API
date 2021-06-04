@@ -11,6 +11,13 @@ const UserSchema = new Schema(
 			default: false,
 		},
 
+		profile_pic: {
+			type: String,
+			required: true,
+			default:
+				'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png',
+		},
+
 		name: {
 			type: String,
 			required: true,
@@ -46,7 +53,7 @@ const UserSchema = new Schema(
 
 		stack: [
 			{
-				image: String,
+				image: Number,
 				name: String,
 			},
 		],

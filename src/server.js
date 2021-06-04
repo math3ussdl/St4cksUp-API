@@ -2,9 +2,11 @@ require('dotenv').config();
 
 const express = require('express');
 const morgan = require('morgan');
+const multer = require('multer');
 const logger = require('./config/logger');
 const users = require('./routes/users');
 const auth = require('./routes/auth');
+const multerConfig = require('./config/multer');
 const { verifyJWT } = require('./middlewares/verifyJWT');
 const {
 	createRequest,
@@ -12,12 +14,16 @@ const {
 	rejectRequest,
 } = require('./routes/requests');
 const { listActivities } = require('./routes/activities');
+const {
+	getPosts,
+	createPost,
+	getPost,
+	updatePost,
+	deletePost,
+} = require('./routes/posts');
 
 const app = express();
 const port = process.env.PORT || 3333;
-
-const server = require('http').createServer(app);
-const io = require('socket.io')(server);
 
 require('./database');
 
@@ -50,27 +56,17 @@ app.route('/users/request/:id/rejects').delete(verifyJWT, rejectRequest);
 
 app.route('/activities').get(verifyJWT, listActivities);
 
-// Socket connection event
-io.on('connection', socket => {
-	logger.info(`Socket connected: ${socket.id}`);
+app
+	.route('/posts')
+	.get(verifyJWT, getPosts)
+	.post(verifyJWT, multer(multerConfig).single('file'), createPost);
+app
+	.route('/posts/:id')
+	.get(verifyJWT, getPost)
+	.put(verifyJWT, updatePost)
+	.delete(verifyJWT, deletePost);
 
-	// Network request event
-	socket.on('network_request', data => {
-		logger.debug('Data: ', data);
-	});
-
-	// Network request accepted event
-	socket.on('network_accepted', data => {
-		logger.debug('Data: ', data);
-	});
-
-	// Network request rejected event
-	socket.on('network_rejected', data => {
-		logger.debug('Data: ', data);
-	});
-});
-
-server.listen(port);
+app.listen(port);
 logger.info(`Server initialized with port: ${port}`);
 
 module.exports = app;
