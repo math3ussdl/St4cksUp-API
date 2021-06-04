@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Post = require('../src/database/models/post');
 const User = require('../src/database/models/user');
 
+const fs = require('fs');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../src/server');
@@ -115,12 +116,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -278,12 +281,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -349,12 +354,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, _post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -420,12 +427,10 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.put(`/posts/${_id}`)
-									.send({
-										image: 'url2',
-										image_hash: 'hash2',
-										description: 'sample post 2',
-									})
 									.set('x-access-token', authRes.body.token)
+									.send({
+										description: 'sample_desc',
+									})
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
 
@@ -476,12 +481,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -489,8 +496,6 @@ describe('Posts', () => {
 											.request(server)
 											.put(`/posts/${post.body.post._id}`)
 											.send({
-												image: 'url2',
-												image_hash: 'hash2',
 												description: 'sample post 2',
 											})
 											.set('x-access-token', authRes.body.token)
@@ -552,12 +557,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, _post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -669,12 +676,14 @@ describe('Posts', () => {
 								chai
 									.request(server)
 									.post('/posts')
-									.send({
-										image: 'url',
-										image_hash: 'hash',
-										description: 'sample post',
-									})
+									.set('Content-Type', 'multipart/form-data')
 									.set('x-access-token', authRes.body.token)
+									.attach(
+										'file',
+										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
+										'test/assets/photo.jpg'
+									)
+									.field('description', 'Hi, i am John')
 									.end((err, post) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 

@@ -2,9 +2,11 @@ require('dotenv').config();
 
 const express = require('express');
 const morgan = require('morgan');
+const multer = require('multer');
 const logger = require('./config/logger');
 const users = require('./routes/users');
 const auth = require('./routes/auth');
+const multerConfig = require('./config/multer');
 const { verifyJWT } = require('./middlewares/verifyJWT');
 const {
 	createRequest,
@@ -54,7 +56,10 @@ app.route('/users/request/:id/rejects').delete(verifyJWT, rejectRequest);
 
 app.route('/activities').get(verifyJWT, listActivities);
 
-app.route('/posts').get(verifyJWT, getPosts).post(verifyJWT, createPost);
+app
+	.route('/posts')
+	.get(verifyJWT, getPosts)
+	.post(verifyJWT, multer(multerConfig).single('file'), createPost);
 app
 	.route('/posts/:id')
 	.get(verifyJWT, getPost)

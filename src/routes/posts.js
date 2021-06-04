@@ -1,3 +1,4 @@
+const axios = require('axios');
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const Post = require('../database/models/post');
@@ -25,6 +26,8 @@ async function createPost(req, res) {
 
 		let post = await Post.create({
 			author: id,
+			image: req.file.link,
+			image_hash: req.file.deletehash,
 			...req.body,
 		});
 
@@ -93,6 +96,12 @@ async function deletePost(req, res) {
 				.status(StatusCodes.NOT_FOUND)
 				.json({ message: 'Post not found!' });
 		}
+
+		await axios.delete(`https://api.imgur.com/3/image/${post.image_hash}`, {
+			headers: {
+				Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+			},
+		});
 
 		let result = await Post.deleteOne({ _id: post.id });
 
