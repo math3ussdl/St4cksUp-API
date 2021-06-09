@@ -8,6 +8,7 @@ const chaiHttp = require('chai-http');
 const server = require('../src/server');
 const logger = require('../src/config/logger');
 const { StatusCodes } = require('http-status-codes');
+const { UserFixture, UserFixtureWithoutEmail } = require('./fixtures/user');
 const should = chai.should();
 
 chai.use(chaiHttp);
@@ -25,18 +26,7 @@ describe('Users', () => {
 	 */
 	describe('POST /users', () => {
 		it('should not POST a user without email field', done => {
-			let user = {
-				name: 'John Doe',
-				username: 'doe_-_john',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			};
+			let user = UserFixtureWithoutEmail;
 
 			chai
 				.request(server)
@@ -55,24 +45,10 @@ describe('Users', () => {
 		});
 
 		it('should POST a user', done => {
-			let user = {
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			};
-
 			chai
 				.request(server)
 				.post('/users')
-				.send(user)
+				.send(UserFixture)
 				.end((err, res) => {
 					if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -94,19 +70,7 @@ describe('Users', () => {
 	 */
 	describe('GET /users', () => {
 		it('it should GET all the users', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -149,19 +113,7 @@ describe('Users', () => {
 		it('should not GET a user given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -202,19 +154,7 @@ describe('Users', () => {
 		it('should not GET a user given a non existent user id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -253,19 +193,7 @@ describe('Users', () => {
 		});
 
 		it('should GET a user by the given id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -343,19 +271,7 @@ describe('Users', () => {
 		});
 
 		it('should ACTIVATE a user given the id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -381,19 +297,7 @@ describe('Users', () => {
 	 */
 	describe('POST /users/invite', () => {
 		it('should INVITE a users given your emails', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -445,19 +349,7 @@ describe('Users', () => {
 		it('should not UPDATE a user given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -511,19 +403,7 @@ describe('Users', () => {
 		it('should not UPDATE a user given a non existent user id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -575,19 +455,7 @@ describe('Users', () => {
 		});
 
 		it('should UPDATE a user given the id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -646,19 +514,7 @@ describe('Users', () => {
 		it('should not DELETE a user given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -699,19 +555,7 @@ describe('Users', () => {
 		it('should not DELETE a user given a non existent user id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -750,19 +594,7 @@ describe('Users', () => {
 		});
 
 		it('should DELETE a user given the id', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');

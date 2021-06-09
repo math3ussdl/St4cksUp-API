@@ -27,6 +27,16 @@ const {
 	deletePost,
 } = require('./posts');
 
+const {
+	addMembers,
+	createStartup,
+	deleteStartup,
+	getStartup,
+	getStartups,
+	removeMember,
+	updateStartup,
+} = require('./startups');
+
 // route definitions
 router.route('/users').get(verifyJWT, getUsers).post(postUser);
 
@@ -56,5 +66,20 @@ router
 	.get(verifyJWT, getPost)
 	.put(verifyJWT, updatePost)
 	.delete(verifyJWT, deletePost);
+
+router
+	.route('/startups')
+	.get(verifyJWT, getStartups)
+	.post(verifyJWT, createStartup);
+
+router
+	.route('/startups/:id')
+	.get(verifyJWT, getStartup)
+	.put(verifyJWT, updateStartup)
+	.delete(verifyJWT, deleteStartup);
+
+router.route('/startups/:id/members/add').put(verifyJWT, addMembers);
+
+router.route('/startups/:id/members/remove').put(verifyJWT, removeMember);
 
 module.exports = router;

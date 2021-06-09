@@ -10,6 +10,7 @@ const chaiHttp = require('chai-http');
 const server = require('../src/server');
 const logger = require('../src/config/logger');
 const { StatusCodes } = require('http-status-codes');
+const { UserFixture, UserFixture2 } = require('./fixtures/user');
 const should = chai.should();
 
 chai.use(chaiHttp);
@@ -35,40 +36,12 @@ describe('Networks', () => {
 	 */
 	describe('POST /users/request', () => {
 		it('should POST a request and requests a user to join in our network connection', done => {
-			let user1 = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user1 = new User(UserFixture);
 
 			user1.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
 
-				let user2 = new User({
-					name: 'Mary Doe',
-					username: 'maryd234_-_1',
-					email: 'mary.doe@gmail.com',
-					password: '12345678',
-					location: 'San Francisco, CA',
-					stack: [
-						{
-							image: 15897,
-							name: 'Node.JS',
-						},
-						{
-							image: 15897,
-							name: 'React.JS',
-						},
-					],
-				});
+				let user2 = new User(UserFixture2);
 
 				user2.save((err, user2) => {
 					if (err) logger.error.bind(err, 'Database Error: ');
@@ -96,9 +69,11 @@ describe('Networks', () => {
 											chai
 												.request(server)
 												.post('/users/request')
-												.set('x-connection-type', 'CONNECTION@REQ')
+												.send({
+													type: 'CONNECTION@REQ',
+													email: user2.email,
+												})
 												.set('x-access-token', authRes.body.token)
-												.set('x-target-id', user2._id)
 												.end((err, res) => {
 													if (err) logger.error.bind(err, 'Request Error: ');
 

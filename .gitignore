@@ -1,6 +1,7 @@
 node_modules/
 dist/
 logs/
+tmp/
 
 yarn.lock
 package-lock.json

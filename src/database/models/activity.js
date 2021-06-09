@@ -10,6 +10,11 @@ const ActivitySchema = new Schema(
 			enum: ['REQUEST', 'ALERT', 'SUCCESS', 'FAILURE'],
 		},
 
+		message: {
+			type: String,
+			required: true,
+		},
+
 		// activity author
 		author: {
 			type: Schema.Types.ObjectId,
@@ -22,24 +27,12 @@ const ActivitySchema = new Schema(
 			ref: 'user',
 		},
 
-		message: {
-			type: String,
-			required: true,
+		requestId: {
+			type: Schema.Types.ObjectId,
+			ref: 'request',
 		},
-
-		answered: Boolean,
 	},
 	{ timestamps: true, versionKey: false }
 );
-
-ActivitySchema.pre('save', function (next) {
-	var activity = this;
-
-	if (activity.type === 'REQUEST') {
-		activity.answered = true;
-	}
-
-	next();
-});
 
 module.exports = mongoose.model('activity', ActivitySchema);

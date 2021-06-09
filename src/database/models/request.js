@@ -15,6 +15,11 @@ const RequestSchema = new Schema(
 			ref: 'activity',
 		},
 
+		startupId: {
+			type: Schema.Types.ObjectId,
+			ref: 'startup',
+		},
+
 		// user logged
 		author: {
 			type: Schema.Types.ObjectId,

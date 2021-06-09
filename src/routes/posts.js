@@ -1,6 +1,5 @@
 const axios = require('axios');
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose');
 const Post = require('../database/models/post');
 const { decodeJWT } = require('../utils/jwt');
 
@@ -26,8 +25,11 @@ async function createPost(req, res) {
 
 		let post = await Post.create({
 			author: id,
-			image: req.file.link,
-			image_hash: req.file.deletehash,
+			image: process.env.NODE_ENV !== 'test' ? req.file.link : req.file.path,
+			image_hash:
+				process.env.NODE_ENV !== 'test'
+					? req.file.deletehash
+					: req.file.filename,
 			...req.body,
 		});
 
@@ -98,11 +100,13 @@ async function deletePost(req, res) {
 				.json({ message: 'Post not found!' });
 		}
 
-		await axios.delete(`https://api.imgur.com/3/image/${post.image_hash}`, {
-			headers: {
-				Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-			},
-		});
+		if (process.env.NODE_ENV !== 'test') {
+			await axios.delete(`https://api.imgur.com/3/image/${post.image_hash}`, {
+				headers: {
+					Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+				},
+			});
+		}
 
 		let result = await Post.deleteOne({ _id: post.id });
 
