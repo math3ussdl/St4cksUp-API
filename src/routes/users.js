@@ -1,5 +1,4 @@
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose');
 const User = require('../database/models/user');
 const { sendMail } = require('../utils/sendMail');
 const { decodeJWT } = require('../utils/jwt');

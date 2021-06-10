@@ -1,6 +1,5 @@
 const axios = require('axios');
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose');
 const Post = require('../database/models/post');
 const { decodeJWT } = require('../utils/jwt');
 
@@ -26,8 +25,11 @@ async function createPost(req, res) {
 
 		let post = await Post.create({
 			author: id,
-			image: req.file.link,
-			image_hash: req.file.deletehash,
+			image: process.env.NODE_ENV !== 'test' ? req.file.link : req.file.path,
+			image_hash:
+				process.env.NODE_ENV !== 'test'
+					? req.file.deletehash
+					: req.file.filename,
 			...req.body,
 		});
 
@@ -98,15 +100,46 @@ async function deletePost(req, res) {
 				.json({ message: 'Post not found!' });
 		}
 
-		await axios.delete(`https://api.imgur.com/3/image/${post.image_hash}`, {
-			headers: {
-				Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-			},
-		});
+		if (process.env.NODE_ENV !== 'test') {
+			await axios.delete(`https://api.imgur.com/3/image/${post.image_hash}`, {
+				headers: {
+					Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+				},
+			});
+		}
 
 		let result = await Post.deleteOne({ _id: post.id });
 
 		return res.json({ message: 'Post successfully deleted!', result });
+	} catch (error) {
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
+	}
+}
+
+/*
+ * PUT /posts/:id/upvote upvotes this post
+ */
+async function upvotePost(req, res) {
+	try {
+		let post = await Post.findById(req.params.id);
+
+		if (!post) {
+			return res
+				.status(StatusCodes.NOT_FOUND)
+				.json({ message: 'Post not found!' });
+		}
+
+		post = await Post.updateOne(
+			{ _id: post.id },
+			{
+				$set: {
+					upvotes: post.upvotes + 1,
+				},
+			},
+			{ new: true }
+		);
+
+		return res.json({ message: 'Post upvoted!' });
 	} catch (error) {
 		return res.status(StatusCodes.BAD_REQUEST).json(error);
 	}
@@ -118,4 +151,5 @@ module.exports = {
 	getPost,
 	getPosts,
 	updatePost,
+	upvotePost,
 };

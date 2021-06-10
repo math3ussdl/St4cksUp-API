@@ -1,37 +1,46 @@
 process.env.NODE_ENV = 'test';
 
 const mongoose = require('mongoose');
-const Post = require('../src/database/models/post');
+const Activity = require('../src/database/models/activity');
+const Request = require('../src/database/models/request');
+const Startup = require('../src/database/models/startup');
 const User = require('../src/database/models/user');
 
-const fs = require('fs');
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../src/server');
 const logger = require('../src/config/logger');
 const { StatusCodes } = require('http-status-codes');
-const { UserFixture } = require('./fixtures/user');
+const { UserFixture, UserFixture2 } = require('./fixtures/user');
 const should = chai.should();
 
 chai.use(chaiHttp);
 
-describe('Posts', () => {
+describe('Startups', () => {
 	beforeEach(done => {
-		Post.deleteMany({}, err => {
+		Activity.deleteMany({}, err => {
 			if (err) logger.error.bind(err, 'Database Error: ');
 
-			User.deleteMany({}, err => {
+			Request.deleteMany({}, err => {
 				if (err) logger.error.bind(err, 'Database Error: ');
-				done();
+
+				Startup.deleteMany({}, err => {
+					if (err) logger.error.bind(err, 'Database Error: ');
+
+					User.deleteMany({}, err => {
+						if (err) logger.error.bind(err, 'Database Error: ');
+						done();
+					});
+				});
 			});
 		});
 	});
 
 	/**
-	 * Test the GET /posts route
+	 * Test the GET /startups route
 	 */
-	describe('GET /posts', () => {
-		it('should GET all the posts', done => {
+	describe('GET /startups', () => {
+		it('should GET all the startups', done => {
 			let user = new User(UserFixture);
 
 			user.save((err, user) => {
@@ -52,7 +61,7 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.get('/posts')
+									.get('/startups')
 									.set('x-access-token', authRes.body.token)
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
@@ -67,11 +76,11 @@ describe('Posts', () => {
 		});
 	});
 
-	/*
-	 * Test the POST /posts route
+	/**
+	 * Test the POST /startups route
 	 */
-	describe('POST /posts', () => {
-		it('should POST a post passing all data correctly', done => {
+	describe('POST /startups', () => {
+		it('should POST a startup passing all data correctly', done => {
 			let user = new User(UserFixture);
 
 			user.save((err, user) => {
@@ -92,15 +101,12 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
@@ -108,7 +114,7 @@ describe('Posts', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('Post successfully created!');
+											.eql('Startup successfully created!');
 
 										done();
 									});
@@ -118,11 +124,11 @@ describe('Posts', () => {
 		});
 	});
 
-	/*
-	 * Test the GET /posts/:id route
+	/**
+	 * Test the GET /startups/:id route
 	 */
-	describe('GET /posts/:id', () => {
-		it('should not GET a post given a not valid id', done => {
+	describe('GET /startups/:id', () => {
+		it('should not GET a startup given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User(UserFixture);
@@ -145,16 +151,18 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.get(`/posts/${_id}`)
+									.get(`/startups/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
-										res.should.have.status(StatusCodes.BAD_REQUEST);
+										res.should.have.status(StatusCodes.INTERNAL_SERVER_ERROR);
 										res.body.should.be.a('object');
-										res.body.should.have.property('value').eql(_id);
-										res.body.should.have.property('path').eql('_id');
-										res.body.should.have.property('name').eql('CastError');
+										res.body.should.have
+											.property('message')
+											.eql(
+												`Cast to ObjectId failed for value \"${_id}\" at path \"_id\" for model \"startup\"`
+											);
 
 										done();
 									});
@@ -163,7 +171,7 @@ describe('Posts', () => {
 			});
 		});
 
-		it('should not GET a post given a non existent post id', done => {
+		it('should not GET a startup given a non existent startup id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
 			let user = new User(UserFixture);
@@ -186,7 +194,7 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.put(`/posts/${_id}`)
+									.put(`/startups/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
@@ -195,7 +203,7 @@ describe('Posts', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('Post not found!');
+											.eql('Startup not found!');
 
 										done();
 									});
@@ -204,7 +212,7 @@ describe('Posts', () => {
 			});
 		});
 
-		it('should GET a post by the given id', done => {
+		it('should GET a startup by the given id', done => {
 			let user = new User(UserFixture);
 
 			user.save((err, user) => {
@@ -225,21 +233,18 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
-									.end((err, post) => {
+									.end((err, startup) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
 										chai
 											.request(server)
-											.get(`/posts/${post.body.post._id}`)
+											.get(`/startups/${startup.body.startup._id}`)
 											.set('x-access-token', authRes.body.token)
 											.end((err, res) => {
 												if (err) logger.error.bind(err, 'Request Error: ');
@@ -248,7 +253,7 @@ describe('Posts', () => {
 												res.body.should.be.a('object');
 												res.body.should.have
 													.property('_id')
-													.eql(post.body.post._id);
+													.eql(startup.body.startup._id);
 
 												done();
 											});
@@ -259,11 +264,11 @@ describe('Posts', () => {
 		});
 	});
 
-	/*
-	 * Test the PUT /posts/:id route
+	/**
+	 * Test the PUT /startups/:id route
 	 */
-	describe('PUT /posts/:id', () => {
-		it('should not PUT a post given a not valid id', done => {
+	describe('PUT /startups/:id', () => {
+		it('should not PUT a startup given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User(UserFixture);
@@ -286,45 +291,31 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.put(`/startups/${_id}`)
+									.send({
+										name: 'RocketSpace',
+										description: 'A Startup that develops agile softwares!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
-									.end((err, _post) => {
+									.end((err, res) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
-										chai
-											.request(server)
-											.put(`/posts/${_id}`)
-											.send({
-												image: 'url2',
-												image_hash: 'hash2',
-												description: 'sample post 2',
-											})
-											.set('x-access-token', authRes.body.token)
-											.end((err, res) => {
-												if (err) logger.error.bind(err, 'Request Error: ');
+										res.should.have.status(StatusCodes.INTERNAL_SERVER_ERROR);
+										res.body.should.be.a('object');
+										res.body.should.have
+											.property('message')
+											.eql(
+												`Cast to ObjectId failed for value \"${_id}\" at path \"_id\" for model \"startup\"`
+											);
 
-												res.should.have.status(StatusCodes.BAD_REQUEST);
-												res.body.should.be.a('object');
-												res.body.should.have.property('value').eql(_id);
-												res.body.should.have.property('path').eql('_id');
-												res.body.should.have.property('name').eql('CastError');
-
-												done();
-											});
+										done();
 									});
 							});
 					});
 			});
 		});
 
-		it('should not PUT a post given a non existent post id', done => {
+		it('should not PUT a startup given a non existent startup id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
 			let user = new User(UserFixture);
@@ -347,10 +338,11 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.put(`/posts/${_id}`)
+									.put(`/startups/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.send({
-										description: 'sample_desc',
+										name: 'RocketSpace',
+										description: 'A Startup that develops agile softwares!',
 									})
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
@@ -359,7 +351,7 @@ describe('Posts', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('Post not found!');
+											.eql('Startup not found!');
 
 										done();
 									});
@@ -368,7 +360,7 @@ describe('Posts', () => {
 			});
 		});
 
-		it('should PUT a post by the given id', done => {
+		it('should PUT a startup by the given id', done => {
 			let user = new User(UserFixture);
 
 			user.save((err, user) => {
@@ -389,23 +381,21 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
-									.end((err, post) => {
+									.end((err, startup) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
 										chai
 											.request(server)
-											.put(`/posts/${post.body.post._id}`)
+											.put(`/startups/${startup.body.startup._id}`)
 											.send({
-												description: 'sample post 2',
+												name: 'RocketSpace',
+												description: 'A Startup that develops agile softwares!',
 											})
 											.set('x-access-token', authRes.body.token)
 											.end((err, res) => {
@@ -415,7 +405,7 @@ describe('Posts', () => {
 												res.body.should.be.a('object');
 												res.body.should.have
 													.property('message')
-													.eql('Post updated!');
+													.eql('Startup updated!');
 
 												done();
 											});
@@ -426,11 +416,11 @@ describe('Posts', () => {
 		});
 	});
 
-	/*
-	 * Test the DELETE /posts/:id route
+	/**
+	 * Test the DELETE /startups/:id route
 	 */
-	describe('DELETE /posts/:id', () => {
-		it('should not DELETE a post given a not valid id', done => {
+	describe('DELETE /startups/:id', () => {
+		it('should not DELETE a startup given a not valid id', done => {
 			const _id = '609d7a245121582eccba6d';
 
 			let user = new User(UserFixture);
@@ -453,30 +443,31 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
-									.end((err, _post) => {
+									.end((err, _startup) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
 										chai
 											.request(server)
-											.delete(`/posts/${_id}`)
+											.delete(`/startups/${_id}`)
 											.set('x-access-token', authRes.body.token)
 											.end((err, res) => {
 												if (err) logger.error.bind(err, 'Request Error: ');
 
-												res.should.have.status(StatusCodes.BAD_REQUEST);
+												res.should.have.status(
+													StatusCodes.INTERNAL_SERVER_ERROR
+												);
 												res.body.should.be.a('object');
-												res.body.should.have.property('value').eql(_id);
-												res.body.should.have.property('path').eql('_id');
-												res.body.should.have.property('name').eql('CastError');
+												res.body.should.have
+													.property('message')
+													.eql(
+														`Cast to ObjectId failed for value \"${_id}\" at path \"_id\" for model \"startup\"`
+													);
 
 												done();
 											});
@@ -486,7 +477,7 @@ describe('Posts', () => {
 			});
 		});
 
-		it('should not DELETE a post given a non existent post id', done => {
+		it('should not DELETE a startup given a non existent startup id', done => {
 			const _id = '609d7a245121582eccba6d85';
 
 			let user = new User(UserFixture);
@@ -509,7 +500,7 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.delete(`/posts/${_id}`)
+									.delete(`/startups/${_id}`)
 									.set('x-access-token', authRes.body.token)
 									.end((errReq, res) => {
 										if (errReq) logger.error.bind(err, 'Request Error: ');
@@ -518,7 +509,7 @@ describe('Posts', () => {
 										res.body.should.be.a('object');
 										res.body.should.have
 											.property('message')
-											.eql('Post not found!');
+											.eql('Startup not found!');
 
 										done();
 									});
@@ -527,7 +518,7 @@ describe('Posts', () => {
 			});
 		});
 
-		it('should DELETE a post by the given id', done => {
+		it('should DELETE a startup by the given id', done => {
 			let user = new User(UserFixture);
 
 			user.save((err, user) => {
@@ -548,21 +539,18 @@ describe('Posts', () => {
 
 								chai
 									.request(server)
-									.post('/posts')
-									.set('Content-Type', 'multipart/form-data')
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
 									.set('x-access-token', authRes.body.token)
-									.attach(
-										'file',
-										fs.readFileSync(`${__dirname}/assets/photo.jpg`),
-										'test/assets/photo.jpg'
-									)
-									.field('description', 'Hi, i am John')
-									.end((err, post) => {
+									.end((err, startup) => {
 										if (err) logger.error.bind(err, 'Request Error: ');
 
 										chai
 											.request(server)
-											.delete(`/posts/${post.body.post._id}`)
+											.delete(`/startups/${startup.body.startup._id}`)
 											.set('x-access-token', authRes.body.token)
 											.end((err, res) => {
 												if (err) logger.error.bind(err, 'Request Error: ');
@@ -571,12 +559,196 @@ describe('Posts', () => {
 												res.body.should.be.a('object');
 												res.body.should.have
 													.property('message')
-													.eql('Post successfully deleted!');
+													.eql('Startup successfully deleted!');
 
 												done();
 											});
 									});
 							});
+					});
+			});
+		});
+	});
+
+	/**
+	 * Test the PUT /startups/:id/members/add route
+	 */
+	describe('PUT startups/:id/members/add', () => {
+		it('should PUT a startup by the given id adding a member', done => {
+			let user = new User(UserFixture);
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						chai
+							.request(server)
+							.post('/users/auth')
+							.send({ email: user.email, password: '123456789' })
+							.end((authErr, authRes) => {
+								if (authErr) logger.error.bind(authErr, 'Request Error: ');
+
+								chai
+									.request(server)
+									.post('/startups')
+									.send({
+										name: 'RocketSpeed',
+										description: 'A Startup that develops agile softwares!!',
+									})
+									.set('x-access-token', authRes.body.token)
+									.end((err, startup) => {
+										if (err) logger.error.bind(err, 'Request Error: ');
+
+										chai
+											.request(server)
+											.put(`/startups/${startup.body.startup._id}/members/add`)
+											.send({
+												emails: ['bdoe123@gmail.com'],
+											})
+											.set('x-access-token', authRes.body.token)
+											.end((err, res) => {
+												if (err) logger.error.bind(err, 'Request Error: ');
+
+												res.should.have.status(StatusCodes.OK);
+												res.body.should.be.a('object');
+												res.body.should.have
+													.property('message')
+													.eql('Members Invited!');
+
+												done();
+											});
+									});
+							});
+					});
+			});
+		});
+	});
+
+	/**
+	 * Test the PUT /startups/:id/members/remove route
+	 */
+	describe('PUT startups/:id/members/remove', () => {
+		it('should PUT a startup by the given id removing a member', done => {
+			let user = new User(UserFixture);
+			var user2 = new User(UserFixture2);
+
+			user.save((err, user) => {
+				if (err) logger.error.bind(err, 'Database Error: ');
+
+				chai
+					.request(server)
+					.put(`/users/active/${user._id}`)
+					.end((errReq, _res) => {
+						if (errReq) logger.error.bind(err, 'Request Error: ');
+
+						user2.save((err, resUser2) => {
+							if (err) logger.error.bind(err, 'Database Error: ');
+
+							chai
+								.request(server)
+								.put(`/users/active/${resUser2._id}`)
+								.end((errReq, _res) => {
+									if (errReq) logger.error.bind(err, 'Request Error: ');
+
+									chai
+										.request(server)
+										.post('/users/auth')
+										.send({ email: user.email, password: '123456789' })
+										.end((authErr, authRes) => {
+											if (authErr)
+												logger.error.bind(authErr, 'Request Error: ');
+
+											chai
+												.request(server)
+												.post('/users/auth')
+												.send({ email: user2.email, password: '12345678' })
+												.end((authErr2, authRes2) => {
+													if (authErr2)
+														logger.error.bind(authErr2, 'Request Error: ');
+
+													chai
+														.request(server)
+														.post('/startups')
+														.send({
+															name: 'RocketSpeed',
+															description:
+																'A Startup that develops agile softwares!!',
+														})
+														.set('x-access-token', authRes.body.token)
+														.end((err, startup) => {
+															if (err)
+																logger.error.bind(err, 'Request Error: ');
+
+															chai
+																.request(server)
+																.put(
+																	`/startups/${startup.body.startup._id}/members/add`
+																)
+																.send({
+																	emails: ['mary.doe@gmail.com'],
+																})
+																.set('x-access-token', authRes.body.token)
+																.end(async (err, _addResponse) => {
+																	if (err)
+																		logger.error.bind(err, 'Request Error: ');
+
+																	const requestId = await Request.findOne({
+																		startupId: startup._id,
+																	});
+
+																	chai
+																		.request(server)
+																		.delete(
+																			`/users/request/${requestId}/accepts`
+																		)
+																		.set('x-access-token', authRes2.body.token)
+																		.end((err, _) => {
+																			if (err)
+																				logger.error.bind(
+																					err,
+																					'Request Error: '
+																				);
+
+																			chai
+																				.request(server)
+																				.put(
+																					`/startups/${startup.body.startup._id}/members/remove`
+																				)
+																				.set(
+																					'x-access-token',
+																					authRes.body.token
+																				)
+																				.send({
+																					emails: ['mary.doe@gmail.com'],
+																				})
+																				.end((err, res) => {
+																					if (err)
+																						logger.error.bind(
+																							err,
+																							'Request Error: '
+																						);
+
+																					res.should.have.status(
+																						StatusCodes.OK
+																					);
+																					res.body.should.be.a('object');
+																					res.body.should.have
+																						.property('message')
+																						.eql('Member removed!');
+																					done();
+																				});
+																		});
+																});
+														});
+												});
+										});
+								});
+						});
 					});
 			});
 		});

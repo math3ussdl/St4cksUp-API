@@ -1,39 +1,35 @@
 const { StatusCodes } = require('http-status-codes');
 const Activity = require('../database/models/activity');
 const User = require('../database/models/user');
+const Startup = require('../database/models/startup');
 const Request = require('../database/models/request');
 const { decodeJWT } = require('../utils/jwt');
 
-/*
+/**
  * POST /users/request route create a request.
  */
 async function createRequest(req, res) {
 	try {
-		const type = req.headers['x-connection-type'];
 		const token = req.headers['x-access-token'];
-		const targetId = req.headers['x-target-id'];
+		const { type, email } = req.body;
+
 		const { id } = await decodeJWT(token);
 
 		const author = await User.findOne({ _id: id });
-		const target = await User.findOne({ _id: targetId });
-
-		const messages = {
-			'CONNECTION@REQ': 'asked her to enter his network!',
-			'STARTUP@REQ': 'asked her to enter his startup!',
-		};
+		const target = await User.findOne({ email });
 
 		const request = await Request.create({
 			type,
-			author,
-			target,
+			author: author._id,
+			target: target._id,
 		});
 
 		await Activity.create({
-			answered: false,
 			type: 'REQUEST',
 			author: author._id,
 			target: target._id,
-			message: messages[type],
+			requestId: request._id,
+			message: 'asked her to enter his network!',
 		});
 
 		return res
@@ -44,7 +40,7 @@ async function createRequest(req, res) {
 	}
 }
 
-/*
+/**
  * DELETE /users/request/:id/accepts route accepts this request.
  */
 async function acceptRequest(req, res) {
@@ -53,15 +49,15 @@ async function acceptRequest(req, res) {
 
 		const request = await Request.findOne({ _id: id });
 
-		const author = await User.findOne({ _id: request.author });
-		if (!author) {
-			return res
-				.status(StatusCodes.NOT_FOUND)
-				.json({ message: 'Author not found!' });
-		}
-
 		switch (request.type) {
 			case 'CONNECTION@REQ':
+				const author = await User.findOne({ _id: request.author });
+				if (!author) {
+					return res
+						.status(StatusCodes.NOT_FOUND)
+						.json({ message: 'Author not found!' });
+				}
+
 				await User.updateOne(
 					{ _id: author._id },
 					{ $set: { connection: [...author.connection, request.target._id] } }
@@ -72,12 +68,36 @@ async function acceptRequest(req, res) {
 				break;
 
 			case 'STARTUP@REQ':
-				break;
+				const startup = await Startup.findOne({ _id: request.startupId });
+				if (!startup) {
+					return res
+						.status(StatusCodes.NOT_FOUND)
+						.json({ message: 'Startup not found!' });
+				}
 
-			case 'PROJECT@REQ':
-				break;
+				await Startup.updateOne(
+					{ _id: request.startupId },
+					{
+						$set: {
+							members: [
+								...startup.members,
+								{ user: request.target._id, responsability: 'DEVELOPER' },
+							],
+						},
+					}
+				);
 
-			case 'TASK@REQ':
+				await Activity.deleteOne({ requestId: id });
+
+				await Activity.create({
+					type: 'SUCCESS',
+					author: request.target,
+					target: request.author,
+					message: 'is now part of your startup!',
+				});
+
+				await Request.deleteOne({ _id: id });
+
 				break;
 		}
 
@@ -87,7 +107,7 @@ async function acceptRequest(req, res) {
 	}
 }
 
-/*
+/**
  * DELETE /users/request/:id/rejects route rejects this request.
  */
 async function rejectRequest(req, res) {

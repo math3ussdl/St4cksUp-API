@@ -8,6 +8,7 @@ const chaiHttp = require('chai-http');
 const server = require('../src/server');
 const logger = require('../src/config/logger');
 const { StatusCodes } = require('http-status-codes');
+const { UserFixture } = require('./fixtures/user');
 const should = chai.should();
 
 chai.use(chaiHttp);
@@ -46,19 +47,7 @@ describe('Auth', () => {
 		});
 
 		it('should not POST a auth passing a user not active', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -82,19 +71,7 @@ describe('Auth', () => {
 		});
 
 		it('should not POST a auth passing a not valid password', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');
@@ -125,19 +102,7 @@ describe('Auth', () => {
 		});
 
 		it('should POST a auth passing a email and password', done => {
-			let user = new User({
-				name: 'John Doe',
-				username: 'doe_-_john',
-				email: 'john.doe123@gmail.com',
-				password: '123456789',
-				location: 'San Francisco, CA',
-				stack: [
-					{
-						image: 15897,
-						name: 'Node.JS',
-					},
-				],
-			});
+			let user = new User(UserFixture);
 
 			user.save((err, user) => {
 				if (err) logger.error.bind(err, 'Database Error: ');

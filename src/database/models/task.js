@@ -1,38 +1,42 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// activity schema definition
-const ActivitySchema = new Schema(
+// task schema definition
+const TaskSchema = new Schema(
 	{
-		type: {
-			type: String,
-			required: true,
-			enum: ['REQUEST', 'ALERT', 'SUCCESS', 'FAILURE'],
-		},
-
-		message: {
+		description: {
 			type: String,
 			required: true,
 		},
 
-		// activity author
+		is_completed: {
+			type: Boolean,
+			required: true,
+			default: false,
+		},
+
 		author: {
 			type: Schema.Types.ObjectId,
 			ref: 'user',
 		},
 
-		// user logged
-		target: {
+		responsible: {
 			type: Schema.Types.ObjectId,
 			ref: 'user',
 		},
 
-		requestId: {
+		project: {
 			type: Schema.Types.ObjectId,
-			ref: 'request',
+			ref: 'project',
+		},
+
+		delivery_date: {
+			type: Date,
+			required: true,
+			default: Date.now(),
 		},
 	},
 	{ timestamps: true, versionKey: false }
 );
 
-module.exports = mongoose.model('activity', ActivitySchema);
+module.exports = mongoose.model('task', TaskSchema);
