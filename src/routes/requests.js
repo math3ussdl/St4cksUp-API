@@ -28,6 +28,7 @@ async function createRequest(req, res) {
 			type: 'REQUEST',
 			author: author._id,
 			target: target._id,
+			requestId: request._id,
 			message: 'asked her to enter his network!',
 		});
 

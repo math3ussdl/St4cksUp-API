@@ -25,9 +25,15 @@ const TaskSchema = new Schema(
 			ref: 'user',
 		},
 
+		project: {
+			type: Schema.Types.ObjectId,
+			ref: 'project',
+		},
+
 		delivery_date: {
 			type: Date,
 			required: true,
+			default: Date.now(),
 		},
 	},
 	{ timestamps: true, versionKey: false }

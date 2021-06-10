@@ -14,25 +14,15 @@ const ProjectSchema = new Schema(
 			required: true,
 		},
 
+		startup: {
+			type: Schema.Types.ObjectId,
+			ref: 'startup',
+		},
+
 		tasks: [
 			{
 				type: Schema.Types.ObjectId,
 				ref: 'task',
-			},
-		],
-
-		members: [
-			{
-				user: {
-					type: Schema.Types.ObjectId,
-					ref: 'member',
-				},
-
-				responsability: {
-					type: String,
-					required: true,
-					enum: ['AUTHOR', 'EDITOR', 'VIEW_ONLY'],
-				},
 			},
 		],
 	},

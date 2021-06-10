@@ -116,10 +116,40 @@ async function deletePost(req, res) {
 	}
 }
 
+/*
+ * PUT /posts/:id/upvote upvotes this post
+ */
+async function upvotePost(req, res) {
+	try {
+		let post = await Post.findById(req.params.id);
+
+		if (!post) {
+			return res
+				.status(StatusCodes.NOT_FOUND)
+				.json({ message: 'Post not found!' });
+		}
+
+		post = await Post.updateOne(
+			{ _id: post.id },
+			{
+				$set: {
+					upvotes: post.upvotes + 1,
+				},
+			},
+			{ new: true }
+		);
+
+		return res.json({ message: 'Post upvoted!' });
+	} catch (error) {
+		return res.status(StatusCodes.BAD_REQUEST).json(error);
+	}
+}
+
 module.exports = {
 	createPost,
 	deletePost,
 	getPost,
 	getPosts,
 	updatePost,
+	upvotePost,
 };

@@ -24,6 +24,7 @@ const {
 	createPost,
 	getPost,
 	updatePost,
+	upvotePost,
 	deletePost,
 } = require('./posts');
 
@@ -36,6 +37,24 @@ const {
 	removeMember,
 	updateStartup,
 } = require('./startups');
+
+const {
+	createProject,
+	deleteProject,
+	getProject,
+	getProjects,
+	updateProject,
+} = require('./projects');
+
+const {
+	addResponsible,
+	createTask,
+	completeTask,
+	deleteTask,
+	getTask,
+	getTasks,
+	updateTask,
+} = require('./tasks');
 
 // route definitions
 router.route('/users').get(verifyJWT, getUsers).post(postUser);
@@ -67,6 +86,8 @@ router
 	.put(verifyJWT, updatePost)
 	.delete(verifyJWT, deletePost);
 
+router.route('/posts/:id/upvote').put(verifyJWT, upvotePost);
+
 router
 	.route('/startups')
 	.get(verifyJWT, getStartups)
@@ -81,5 +102,35 @@ router
 router.route('/startups/:id/members/add').put(verifyJWT, addMembers);
 
 router.route('/startups/:id/members/remove').put(verifyJWT, removeMember);
+
+router
+	.route('/startups/:id/projects')
+	.get(verifyJWT, getProjects)
+	.post(verifyJWT, createProject);
+
+router
+	.route('/startups/:id/projects/:projid')
+	.get(verifyJWT, getProject)
+	.put(verifyJWT, updateProject)
+	.delete(verifyJWT, deleteProject);
+
+router
+	.route('/startups/:id/projects/:projid/tasks')
+	.get(verifyJWT, getTasks)
+	.post(verifyJWT, createTask);
+
+router
+	.route('/startups/:id/projects/:projid/tasks/:taskid')
+	.get(verifyJWT, getTask)
+	.put(verifyJWT, updateTask)
+	.delete(verifyJWT, deleteTask);
+
+router
+	.route('/startups/:id/projects/:projid/tasks/:taskid/responsible/add')
+	.put(verifyJWT, addResponsible);
+
+router
+	.route('/startups/:id/projects/:projid/tasks/:taskid/completed')
+	.put(verifyJWT, completeTask);
 
 module.exports = router;

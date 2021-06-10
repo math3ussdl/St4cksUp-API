@@ -1,6 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
 const Activity = require('../database/models/activity');
 const Startup = require('../database/models/startup');
+const Project = require('../database/models/project');
+const Task = require('../database/models/task');
 const Request = require('../database/models/request');
 const User = require('../database/models/user');
 const { sendMail } = require('../utils/sendMail');
@@ -12,7 +14,7 @@ const { decodeJWT } = require('../utils/jwt');
 async function getStartups(_req, res) {
 	try {
 		const startups = await Startup.find()
-			.populate('project')
+			.populate('projects')
 			.populate('members.user');
 
 		return res.json(startups);
@@ -223,13 +225,21 @@ async function removeMember(req, res) {
  */
 async function deleteStartup(req, res) {
 	try {
-		let startup = await Startup.findById(req.params.id);
+		let startup = await Startup.findById(req.params.id).populate('projects');
 
 		if (!startup) {
 			return res
 				.status(StatusCodes.NOT_FOUND)
 				.json({ message: 'Startup not found!' });
 		}
+
+		await startup.projects.map(async prj => {
+			await prj.tasks.map(async el => {
+				await Task.findByIdAndDelete(el);
+			});
+
+			await Project.findByIdAndDelete(prj._id);
+		});
 
 		let result = await Startup.deleteOne({ _id: startup.id });
 
