@@ -185,7 +185,7 @@ async function completeTask(req, res) {
 		if (!task) {
 			return res
 				.status(StatusCodes.NOT_FOUND)
-				.json({ message: 'Task not found!' });
+				.json({ message: 'Task not found!!' });
 		}
 
 		const responsible = await User.findOne({ _id: task.responsible._id });
